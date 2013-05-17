@@ -65,11 +65,11 @@ GLuint loadProgram(const char* pV, const char* pG, const char* pF)
         glProgramParameteriEXT(programHandle, GL_GEOMETRY_VERTICES_OUT_EXT, 4);
     }
 
-    glBindAttribLocation(programHandle, SlotPosition, "Position");
-    glBindAttribLocation(programHandle, SlotTexCoord, "TexCoord");
-    glBindAttribLocation(programHandle, SlotNormal, "Normal");
-    glBindAttribLocation(programHandle, SlotBirthTime, "BirthTime");
-    glBindAttribLocation(programHandle, SlotVelocity, "Velocity");
+    glBindAttribLocation(programHandle, POSITION_SLOT, "Position");
+    glBindAttribLocation(programHandle, TEX_COORD_SLOT, "TexCoord");
+    glBindAttribLocation(programHandle, NORMAL_SLOT, "Normal");
+    glBindAttribLocation(programHandle, BIRTH_TIME_SLOT, "BirthTime");
+    glBindAttribLocation(programHandle, VELOCITY_SLOT, "Velocity");
     glLinkProgram(programHandle);
     glGetProgramiv(programHandle, GL_LINK_STATUS, &linkSuccess);
     glGetProgramInfoLog(programHandle, sizeof(compilerSpew), 0, compilerSpew);

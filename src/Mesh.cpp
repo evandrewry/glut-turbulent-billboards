@@ -52,28 +52,28 @@ void RenderMesh(Mesh mesh)
     // PezCheckCondition(mesh.IndexBuffer != 0 && mesh.PositionsBuffer != 0, "Invalid mesh.");
 
     glBindBuffer(GL_ARRAY_BUFFER, mesh.PositionsBuffer);
-    glVertexAttribPointer(SlotPosition, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
-    glEnableVertexAttribArray(SlotPosition);
+    glVertexAttribPointer(POSITION_SLOT, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+    glEnableVertexAttribArray(POSITION_SLOT);
 
     if (mesh.NormalsBuffer) {
         glBindBuffer(GL_ARRAY_BUFFER, mesh.NormalsBuffer);
-        glVertexAttribPointer(SlotNormal, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
-        glEnableVertexAttribArray(SlotNormal);
+        glVertexAttribPointer(NORMAL_SLOT, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+        glEnableVertexAttribArray(NORMAL_SLOT);
     }
 
     if (mesh.TexCoordsBuffer) {
         glBindBuffer(GL_ARRAY_BUFFER, mesh.TexCoordsBuffer);
-        glVertexAttribPointer(SlotTexCoord, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
-        glEnableVertexAttribArray(SlotTexCoord);
+        glVertexAttribPointer(TEX_COORD_SLOT, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+        glEnableVertexAttribArray(TEX_COORD_SLOT);
     }
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.IndexBuffer);
     glDrawElements(GL_TRIANGLES, mesh.IndexCount, GL_UNSIGNED_INT, 0);
     // PezCheckCondition(glGetError() == GL_NO_ERROR, "OpenGL error.");
 
-    glDisableVertexAttribArray(SlotPosition);
-    glDisableVertexAttribArray(SlotNormal);
-    glDisableVertexAttribArray(SlotTexCoord);
+    glDisableVertexAttribArray(POSITION_SLOT);
+    glDisableVertexAttribArray(NORMAL_SLOT);
+    glDisableVertexAttribArray(TEX_COORD_SLOT);
 }
 
 Mesh LoadMesh(const char* path)
@@ -106,8 +106,8 @@ Mesh LoadMesh(const char* path)
     glGenBuffers(1, &pod.PositionsBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, pod.PositionsBuffer);
     glBufferData(GL_ARRAY_BUFFER, size, positions, GL_STATIC_DRAW);
-    glEnableVertexAttribArray(SlotPosition);
-    glVertexAttribPointer(SlotPosition, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
+    glEnableVertexAttribArray(POSITION_SLOT);
+    glVertexAttribPointer(POSITION_SLOT, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
 
     // Create the VBO for normals:
     const CTMfloat* normals = ctmGetFloatArray(ctmContext, CTM_NORMALS);
@@ -116,8 +116,8 @@ Mesh LoadMesh(const char* path)
         glGenBuffers(1, &pod.NormalsBuffer);
         glBindBuffer(GL_ARRAY_BUFFER, pod.NormalsBuffer);
         glBufferData(GL_ARRAY_BUFFER, size, normals, GL_STATIC_DRAW);
-        glEnableVertexAttribArray(SlotNormal);
-        glVertexAttribPointer(SlotNormal, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
+        glEnableVertexAttribArray(NORMAL_SLOT);
+        glVertexAttribPointer(NORMAL_SLOT, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, 0);
     }
 
     // Create the VBO for texcoords:
@@ -127,8 +127,8 @@ Mesh LoadMesh(const char* path)
         glGenBuffers(1, &pod.TexCoordsBuffer);
         glBindBuffer(GL_ARRAY_BUFFER, pod.TexCoordsBuffer);
         glBufferData(GL_ARRAY_BUFFER, size, texcoords, GL_STATIC_DRAW);
-        glEnableVertexAttribArray(SlotTexCoord);
-        glVertexAttribPointer(SlotTexCoord, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
+        glEnableVertexAttribArray(TEX_COORD_SLOT);
+        glVertexAttribPointer(TEX_COORD_SLOT, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
     }
 
     // Create the VBO for indices:

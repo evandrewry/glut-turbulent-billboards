@@ -19,11 +19,11 @@ struct Particle {
 typedef std::vector<Particle> ParticleList; // TODO convert to non-STL; what data structure segues best to GPU?
 
 enum AttributeSlot {
-    SlotPosition,
-    SlotTexCoord,
-    SlotNormal,
-    SlotBirthTime,
-    SlotVelocity,
+    POSITION_SLOT,
+    TEX_COORD_SLOT,
+    NORMAL_SLOT,
+    BIRTH_TIME_SLOT,
+    VELOCITY_SLOT,
 };
 
 struct ITrackball {
@@ -50,7 +50,7 @@ struct Texture {
     GLsizei Height;
 };
 
-struct SurfacePod {
+struct Surface {
     GLuint Fbo;
     GLuint ColorTexture;
     GLuint DepthTexture;
@@ -77,7 +77,7 @@ void RenderMesh(Mesh mesh);
 
 // Texture.cpp
 Texture LoadTexture(const char* path);
-SurfacePod CreateSurface(int width, int height);
+Surface CreateSurface(int width, int height);
 
 // Particles.cpp
 void AdvanceTime(ParticleList& particleList, float dt, float timeStep);

@@ -9,9 +9,13 @@
 #endif
 #include <algorithm>
 #include "Common.hpp"
+#include <GLScreenCapturer.h>
 
-#define WIN_WIDTH 480
-#define WIN_HEIGHT 853
+
+#define WIN_WIDTH 960
+#define WIN_HEIGHT 540
+
+static GLScreenCapturer screenshot("screenshot-%04d.ppm");
 
 using namespace vmath;
 using std::sort;
@@ -19,6 +23,9 @@ using std::sort;
 static ITrackball* Trackball = 0;
 static Texture Background;
 static Texture Sprite;
+static Texture Smoke;
+static Texture Tadpole;
+static Texture Billboard;
 
 static Mesh ScreenQuad;
 static Mesh ObstacleMesh;
@@ -29,12 +36,13 @@ static GLuint CompositeProgram;
 static Matrix4 ProjectionMatrix;
 static Matrix4 ViewMatrix;
 static Matrix4 ModelviewProjection;
-bool ShowStreamlines = true;
-static const float TimeStep = ShowStreamlines ? 1.0f : 3.0f;
+bool ShowStreamlines = false;
+bool obstacle = false;
+static const float TimeStep = ShowStreamlines ? 1.0f : 2.0f;
 static float Time = 0;
 static ParticleList Particles;
-static SurfacePod BackgroundSurface;
-static SurfacePod ParticleSurface;
+static Surface BackgroundSurface;
+static Surface ParticleSurface;
 
 static const Vector4 Yellow(.7, 1, .5, 1);
 static const Vector4 Black(0, 0, 0, 1);
@@ -46,7 +54,10 @@ void initShit()
     Trackball = CreateTrackball(WIN_WIDTH * 1.0f, WIN_HEIGHT * 1.0f, WIN_WIDTH * 3.0f / 4.0f);
     ScreenQuad = CreateQuad();
     Background = LoadTexture("white.png");
-    Sprite = LoadTexture("Sprite.png");
+    Smoke = LoadTexture("Sprite.png");
+    Tadpole = LoadTexture("Tadpole.png");
+    Billboard = LoadTexture("Billboard.png");
+    Sprite = Smoke;
     ObstacleMesh = LoadMesh("Sphere.ctm");
     BlitProgram = loadProgram("Blit.VS", 0, "Blit.FS");
     LitProgram = loadProgram("Lit.VS", 0, "Lit.FS");
@@ -119,17 +130,17 @@ void draw()
         setUniform("Modelview", modelview.getUpper3x3());
         setUniform("InverseSize", 1.0f / WIN_WIDTH, 1.0f / WIN_HEIGHT);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glEnableVertexAttribArray(SlotPosition);
-        glEnableVertexAttribArray(SlotBirthTime);
-        glEnableVertexAttribArray(SlotVelocity);
+        glEnableVertexAttribArray(POSITION_SLOT);
+        glEnableVertexAttribArray(BIRTH_TIME_SLOT);
+        glEnableVertexAttribArray(VELOCITY_SLOT);
         unsigned char* pData = (unsigned char*) &Particles[0].Px;
-        glVertexAttribPointer(SlotPosition, 3, GL_FLOAT, GL_FALSE, sizeof(Particle), pData);
-        glVertexAttribPointer(SlotBirthTime, 1, GL_FLOAT, GL_FALSE, sizeof(Particle), 12 + pData);
-        glVertexAttribPointer(SlotVelocity, 3, GL_FLOAT, GL_FALSE, sizeof(Particle), 16 + pData);
+        glVertexAttribPointer(POSITION_SLOT, 3, GL_FLOAT, GL_FALSE, sizeof(Particle), pData);
+        glVertexAttribPointer(BIRTH_TIME_SLOT, 1, GL_FLOAT, GL_FALSE, sizeof(Particle), 12 + pData);
+        glVertexAttribPointer(VELOCITY_SLOT, 3, GL_FLOAT, GL_FALSE, sizeof(Particle), 16 + pData);
         glDrawArrays(GL_POINTS, 0, Particles.size());
-        glDisableVertexAttribArray(SlotPosition);
-        glDisableVertexAttribArray(SlotBirthTime);
-        glDisableVertexAttribArray(SlotVelocity);
+        glDisableVertexAttribArray(POSITION_SLOT);
+        glDisableVertexAttribArray(BIRTH_TIME_SLOT);
+        glDisableVertexAttribArray(VELOCITY_SLOT);
         glDisable(GL_BLEND);
         glBindTexture(GL_TEXTURE_2D, 0);
     }
@@ -248,25 +259,13 @@ void keyboard( unsigned char key, int x, int y )
 {
     switch(key)
     {
-    // case '1':
-    //     moveObstacle(Vector3(0,0,1));
-    // case '2':
-    //     moveObstacle(Vector3(0,0,-1));
-    // case '3':
-    //     moveObstacle(Vector3(0,1,0));
-    // case '4':
-    //     moveObstacle(Vector3(0,-1,0));
-    // case '5':
-    //     moveObstacle(Vector3(1,0,0));
-    // case '6':
-    //     moveObstacle(Vector3(-1,0,0));
     case 27: // Escape key
         exit(0);
         break;
-    // case 'r':
-    //     printf("save current screen\n");
-    //     screenshot.capture();
-    //     break;
+    case 'r':
+        printf("save current screen\n");
+        screenshot.capture();
+        break;
     }
 }
 
@@ -301,7 +300,11 @@ int main (int argc, char *argv[])
 
     initShit();
 
-
+    if (argv[1] && !strcmp(argv[1], "--billboard")) Sprite = Billboard;
+    else if (argv[1] && !strcmp(argv[1], "--tadpole")) Sprite = Tadpole;
+    else if (argv[1] && !strcmp(argv[1], "--smoke")) Sprite = Smoke;
+    else if ((argv[1] && (!strcmp(argv[1], "--streamlines"))) || (argv[2] && !strcmp(argv[2], "--streamlines"))) ShowStreamlines = true;
+    if ((argv[1] && (!strcmp(argv[1], "--obstacle"))) || (argv[2] && !strcmp(argv[2], "--obstacle"))) obstacle = true;
 
 
     glutMainLoop();

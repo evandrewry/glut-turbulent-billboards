@@ -83,9 +83,9 @@ Texture LoadTexture(const char* path)
     return pod;
 }
 
-SurfacePod CreateSurface(int width, int height)
+Surface CreateSurface(int width, int height)
 {
-    SurfacePod pod;
+    Surface pod;
 
     // Create a depth texture:
     glGenTextures(1, &pod.DepthTexture);

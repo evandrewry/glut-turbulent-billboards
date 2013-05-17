@@ -1,28 +1,31 @@
 #include <vmath.hpp>
 #include <cmath>
 #include <vector>
-#include "noise.h"
+#include <noise.h>
 #include "Common.hpp"
 
 using namespace vmath;
 
+extern bool ShowStreamlines;
+extern bool obstacle;
+
 static Point3 SphereCenter(0, 0, 0);
-static const float SphereRadius = 1.f;
+static const float SphereRadius = 0.75f;
 static const float Epsilon = 1e-10f;
 static const float NoiseLengthScale[] = {0.4f, 0.23f, 0.11f};
 static const float NoiseGain[] = {1.0f, 0.5f, 0.25f};
-static const float PlumeCeiling(3);
-static const float PlumeBase(-3);
-static const float PlumeHeight(8);
+static const float PlumeCeiling(1);
+static const float PlumeBase(-.75);
+static const float PlumeHeight(4);
 static const float RingRadius(1.25f);
 static const float RingSpeed(0.3f);
 static const float RingsPerSecond(0.125f);
 static const float RingMagnitude(10);
 static const float RingFalloff(0.7f);
-static const float ParticlesPerSecond(300);
-static const float SeedRadius(0.25f);
-static const float InitialBand(0.1f);
-extern bool ShowStreamlines;
+static const float ParticlesPerSecond(ShowStreamlines ? 100000: 10000 );
+static const float SeedRadius(0.125f);
+static const float InitialBand(.25f);
+
 
 static float Time = 0;
 static unsigned int Seed(0);
@@ -34,8 +37,21 @@ inline float noise1(Vector3 s) { return noise(s.getY() + 31.416f, s.getZ() - 47.
 inline float noise2(Vector3 s) { return noise(s.getZ() - 233.145f, s.getX() - 113.408f, s.getY() - 185.31f); }
 inline Vector3 noise3d(Vector3 s) { return Vector3(noise0(s), noise1(s), noise2(s)); };
 
-static Vector3 SamplePotential(Point3 p);
-static float SampleDistance(Point3 p);
+static Vector3 BlendVectors(Vector3 potential, float alpha, Vector3 distanceGradient)
+{
+    float dp = dot(potential, distanceGradient);
+    return alpha * potential + (1-alpha) * dp * distanceGradient;
+}
+
+
+static float SampleDistance(Point3 p)
+{
+    if (!obstacle) return (0* p.getX() + 1 * p.getY() + 0 * p.getZ() - 0.75);
+    float phi = p.getY();
+    Vector3 u = p - SphereCenter;
+    float d = length(u);
+    return d - SphereRadius;
+}
 
 static Vector3 ComputeGradient(Point3 p)
 {
@@ -50,40 +66,6 @@ static Vector3 ComputeGradient(Point3 p)
     float dfdz = SampleDistance(p + dz) - d;
 
     return normalize(Vector3(dfdx, dfdy, dfdz));
-}
-
-static Vector3 ComputeCurl(Point3 p)
-{
-    const float e = 1e-4f;
-    Vector3 dx(e, 0, 0);
-    Vector3 dy(0, e, 0);
-    Vector3 dz(0, 0, e);
-
-    float x = SamplePotential(p + dy)[2] - SamplePotential(p - dy)[2]
-            - SamplePotential(p + dz)[1] + SamplePotential(p - dz)[1];
-
-    float y = SamplePotential(p + dz)[0] - SamplePotential(p - dz)[0]
-            - SamplePotential(p + dx)[2] + SamplePotential(p - dx)[2];
-
-    float z = SamplePotential(p + dx)[1] - SamplePotential(p - dx)[1]
-            - SamplePotential(p + dy)[0] + SamplePotential(p - dy)[0];
-
-    return Vector3(x, y, z) / (2*e);
-}
-
-static Vector3 BlendVectors(Vector3 potential, float alpha, Vector3 distanceGradient)
-{
-    float dp = dot(potential, distanceGradient);
-    return alpha * potential + (1-alpha) * dp * distanceGradient;
-}
-
-static float SampleDistance(Point3 p)
-{
-    return (0* p.getX() + 1 * p.getY() + 0 * p.getZ() - 1);
-    float phi = p.getY();
-    Vector3 u = p - SphereCenter;
-    float d = length(u);
-    return d - SphereRadius;
 }
 
 static Vector3 SamplePotential(Point3 p)
@@ -119,6 +101,30 @@ static Vector3 SamplePotential(Point3 p)
 
    return psi;
 }
+
+
+
+
+static Vector3 ComputeCurl(Point3 p)
+{
+    const float e = 1e-4f;
+    Vector3 dx(e, 0, 0);
+    Vector3 dy(0, e, 0);
+    Vector3 dz(0, 0, e);
+
+    float x = SamplePotential(p + dy)[2] - SamplePotential(p - dy)[2]
+            - SamplePotential(p + dz)[1] + SamplePotential(p - dz)[1];
+
+    float y = SamplePotential(p + dz)[0] - SamplePotential(p - dz)[0]
+            - SamplePotential(p + dx)[2] + SamplePotential(p - dx)[2];
+
+    float z = SamplePotential(p + dx)[1] - SamplePotential(p - dx)[1]
+            - SamplePotential(p + dy)[0] + SamplePotential(p - dy)[0];
+
+    return Vector3(x, y, z) / (2*e);
+}
+
+
 
 static void SeedParticles(ParticleList& list, float dt)
 {
@@ -163,7 +169,7 @@ void AdvanceTime(ParticleList& list, float dt, float timeStep)
 
     // TODO Use proper GPU-amenable lifetime management
     for (ParticleList::iterator i = list.begin(); i != list.end();) {
-        if (i->Py > PlumeCeiling) {
+        if (i->Py > PlumeCeiling || Time - i->ToB > 30) {
             i = list.erase(i);
         } else {
             ++i;
@@ -176,121 +182,3 @@ void AdvanceTime(ParticleList& list, float dt, float timeStep)
         SeedParticles(list, dt);
 }
 
-Texture VisualizePotential(GLsizei texWidth, GLsizei texHeight)
-{
-    std::vector<unsigned char> data(texWidth * texHeight * 3);
-
-    const float W = 2.0f; // 0.4f;
-    const float H = W * texHeight / texWidth;
-
-    Vector3 minV(100,100,100);
-    Vector3 maxV(-100,-100,-100);
-    for (GLsizei row = 0; row < texHeight; ++row) {
-        for (GLsizei col = 0; col < texWidth; ++col) {
-            float x = -W + 2 * W * col / texWidth;
-            float y = -H + 2 * H * row / texHeight;
-            Point3 p(x, y, 0);
-            Vector3 v = SamplePotential(p);
-            minV = minPerElem(v, minV);
-            maxV = maxPerElem(v, maxV);
-        }
-    }
-
-    std::vector<unsigned char>::iterator pData = data.begin();
-    for (GLsizei row = 0; row < texHeight; ++row) {
-        for (GLsizei col = 0; col < texWidth; ++col) {
-            unsigned char red = 255;
-            unsigned char grn = 0;
-            unsigned char blu = 0;
-
-            if (row == 0 || col == 0 || row == texHeight-1 || col == texWidth-1)
-                grn = 255;
-
-            float x = -W + 2 * W * col / texWidth;
-            float y = -H + 2 * H * row / texHeight;
-            Point3 p(x, y, 0);
-            Vector3 v = SamplePotential(p);
-
-            v = divPerElem(v - minV, maxV - minV);
-
-            *pData++ = (unsigned char) (v.getX() * 255);
-            *pData++ = (unsigned char) (v.getY() * 255);
-            *pData++ = (unsigned char) (v.getZ() * 255);
-        }
-    }
-
-    GLuint handle;
-    glGenTextures(1, &handle);
-    glBindTexture(GL_TEXTURE_2D, handle);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texWidth, texHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, &data[0]);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-    Texture pod;
-    pod.Handle = handle;
-    pod.Width = texWidth;
-    pod.Height = texHeight;
-    return pod;
-}
-
-// Texture CreateVelocityTexture(GLsizei texWidth, GLsizei texHeight, GLsizei texDepth, void (*progress)(int))
-// {
-//     VelocityCache.Data.resize(texWidth * texHeight * texDepth * 3);
-
-//     const float W = 2.0f;
-//     const float H = W * texHeight / texWidth;
-//     const float D = W;
-
-//     size_t requiredBytes = VelocityCache.Data.size() * sizeof(float);
-//     FILE* voxelsFile = fopen("Velocity.dat", "rb");
-//     if (voxelsFile) {
-//         printf("read voxel file...\n");
-//         size_t bytesRead = fread(&VelocityCache.Data[0], 1, requiredBytes, voxelsFile);
-//         //PezCheckCondition(bytesRead == requiredBytes);
-//         printf("read: %ld, required: %ld\n", bytesRead, requiredBytes);
-//     } else {
-//         printf("generate voxels...\n");
-//         std::vector<float>::iterator pData = VelocityCache.Data.begin();
-//         for (GLsizei slice = 0; slice < texDepth; ++slice) {
-//             for (GLsizei row = 0; row < texHeight; ++row) {
-//                 for (GLsizei col = 0; col < texWidth; ++col) {
-//                     Point3 p;
-//                     p[0] = -W + 2 * W * col / texWidth;
-//                     p[1] = -H + 2 * H * row / texHeight;
-//                     p[2] = -D + 2 * D * slice / texDepth;
-//                     Vector3 v = ComputeCurl(p);
-//                     *pData++ = v[0];
-//                     *pData++ = v[1];
-//                     *pData++ = v[2];
-//                 }
-//             }
-
-//             progress(texDepth - 1 - slice);
-//         }
-
-//         voxelsFile = fopen("Velocity.dat", "wb");
-//         size_t bytesWritten = fwrite(&VelocityCache.Data[0], 1, requiredBytes, voxelsFile);
-//         printf("written: %ld, required: %ld\n", bytesWritten, requiredBytes);
-
-//         //PezCheckCondition(bytesWritten == requiredBytes);
-//     }
-//     fclose(voxelsFile);
-//     GLuint handle;
-//     glGenTextures(1, &handle);
-//     glBindTexture(GL_TEXTURE_3D, handle);
-//     glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB16F, texWidth, texHeight, texDepth, 0, GL_RGB, GL_FLOAT, &VelocityCache.Data[0]);
-//     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-//     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-//     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-//     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-//     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-//     VelocityCache.Description.Handle = handle;
-//     VelocityCache.Description.Width = texWidth;
-//     VelocityCache.Description.Height = texHeight;
-//     VelocityCache.Description.Depth = texDepth;
-
-//     return VelocityCache.Description;
-// }
