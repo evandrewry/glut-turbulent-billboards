@@ -22,7 +22,7 @@ static const float RingSpeed(0.3f);
 static const float RingsPerSecond(0.125f);
 static const float RingMagnitude(10);
 static const float RingFalloff(0.7f);
-static const float ParticlesPerSecond(ShowStreamlines ? 100000: 10000 );
+static const float ParticlesPerSecond(ShowStreamlines ? 1000: 10000 );
 static const float SeedRadius(0.125f);
 static const float InitialBand(.25f);
 
@@ -47,6 +47,7 @@ static Vector3 BlendVectors(Vector3 potential, float alpha, Vector3 distanceGrad
 static float SampleDistance(Point3 p)
 {
     if (!obstacle) return (0* p.getX() + 1 * p.getY() + 0 * p.getZ() - 0.75);
+
     float phi = p.getY();
     Vector3 u = p - SphereCenter;
     float d = length(u);
@@ -143,7 +144,7 @@ static void SeedParticles(ParticleList& list, float dt)
         Particle p;
         p.Px = r*std::cos(theta);
         p.Py = PlumeBase + y;
-        p.Pz = r*std::sin(theta) + 0.125f; // Nudge the emitter towards the viewer ever so slightly
+        p.Pz = r*std::sin(theta) + 0.125f; // Nudge the emitter towards the viewer
         p.ToB = Time;
         list.push_back(p);
     }
@@ -153,7 +154,6 @@ void AdvanceTime(ParticleList& list, float dt, float timeStep)
 {
     Time += dt;
 
-    // TODO Make this proper RK2
     for (size_t i = 0; i < list.size(); ++i) {
         Point3 p(list[i].Px, list[i].Py, list[i].Pz);
         Vector3 v = ComputeCurl(p);
@@ -167,9 +167,8 @@ void AdvanceTime(ParticleList& list, float dt, float timeStep)
         list[i].Vz = v.getZ();
     }
 
-    // TODO Use proper GPU-amenable lifetime management
     for (ParticleList::iterator i = list.begin(); i != list.end();) {
-        if (i->Py > PlumeCeiling || Time - i->ToB > 30) {
+        if (i->Py > PlumeCeiling) {
             i = list.erase(i);
         } else {
             ++i;

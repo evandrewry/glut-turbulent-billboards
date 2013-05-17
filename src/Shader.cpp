@@ -30,34 +30,28 @@ GLuint loadProgram(const char* pV, const char* pG, const char* pF)
     GLuint programHandle = glCreateProgram();
 
     const char* vsSource = glswGetShader(vsKey);
-    // PezCheckCondition(vsSource != 0, "Can't find vertex shader: %s\n", vsKey);
     GLuint vsHandle = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vsHandle, 1, &vsSource, 0);
     glCompileShader(vsHandle);
     glGetShaderiv(vsHandle, GL_COMPILE_STATUS, &compileSuccess);
     glGetShaderInfoLog(vsHandle, sizeof(compilerSpew), 0, compilerSpew);
-    // PezCheckCondition(compileSuccess, ("Can't compile %s:\n%s", vsKey, compilerSpew));
     glAttachShader(programHandle, vsHandle);
 
     const char* fsSource = glswGetShader(fsKey);
-    // PezCheckCondition(fsSource != 0, "Can't find fragment shader: %s\n", fsKey);
     GLuint fsHandle = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fsHandle, 1, &fsSource, 0);
     glCompileShader(fsHandle);
     glGetShaderiv(fsHandle, GL_COMPILE_STATUS, &compileSuccess);
     glGetShaderInfoLog(fsHandle, sizeof(compilerSpew), 0, compilerSpew);
-    // PezCheckCondition(compileSuccess, ("Can't compile %s:\n%s", fsKey, compilerSpew));
     glAttachShader(programHandle, fsHandle);
 
     if (pG) {
         const char* gsSource = glswGetShader(gsKey);
-        // PezCheckCondition(gsSource != 0, "Can't find geometry shader: %s\n", gsKey);
         GLuint gsHandle = glCreateShader(GL_GEOMETRY_SHADER);
         glShaderSource(gsHandle, 1, &gsSource, 0);
         glCompileShader(gsHandle);
         glGetShaderiv(gsHandle, GL_COMPILE_STATUS, &compileSuccess);
         glGetShaderInfoLog(gsHandle, sizeof(compilerSpew), 0, compilerSpew);
-        // PezCheckCondition(compileSuccess, ("Can't compile %s:\n%s", gsKey, compilerSpew));
         glAttachShader(programHandle, gsHandle);
 
         glProgramParameteriEXT(programHandle, GL_GEOMETRY_OUTPUT_TYPE_EXT, GL_TRIANGLE_STRIP);
@@ -73,7 +67,6 @@ GLuint loadProgram(const char* pV, const char* pG, const char* pF)
     glLinkProgram(programHandle);
     glGetProgramiv(programHandle, GL_LINK_STATUS, &linkSuccess);
     glGetProgramInfoLog(programHandle, sizeof(compilerSpew), 0, compilerSpew);
-    // PezCheckCondition(linkSuccess, compilerSpew);
 
     glUseProgram(programHandle);
     return programHandle;

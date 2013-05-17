@@ -222,37 +222,11 @@ void mouse( int button, int state, int x, int y)
         Trackball->MouseDown(x, y);
     else if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
         Trackball->MouseUp(x, y);
-
-    // switch (action) {
-    //     case PEZ_DOWN:
-    //         Trackball->MouseDown(x, y);
-    //         break;
-    //     case PEZ_UP:
-    //         Trackball->MouseUp(x, y);
-    //         break;
-    //     case PEZ_MOVE:
-    //         Trackball->MouseMove(x, y);
-    //         break;
-    //     case PEZ_DOUBLECLICK:
-    //         Trackball->ReturnHome();
-    //         break;
-    // }
 }
 
 void motion(int x, int y)
 {
     Trackball->MouseMove(x, y);
-    // tbMotion(x, y);
-    
-    // GLfloat winX, winY, winZ;
-    // GLdouble posX, posY, posZ;
-    
-    // winX = (float)x;
-    // winY = (float)viewport[3] - (float)y;
-    // glReadPixels( x, (int)winY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &winZ );
-    // //gluUnProject( winX, winY, winZ, modelview, projection, viewport, &posX, &posY, &posZ);
-    // glutPostRedisplay();
-
 }
 
 void keyboard( unsigned char key, int x, int y )
@@ -271,12 +245,10 @@ void keyboard( unsigned char key, int x, int y )
 
 void initGlew()
 {
-    //glewExperimental = GL_TRUE; // segfault on Nvidia otherwise
     GLenum err = glewInit();
     if (GLEW_OK != err)
     {
-      /* Problem: glewInit failed, something is seriously wrong. */
-     fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
+        fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
     }
     fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
 }
@@ -303,8 +275,8 @@ int main (int argc, char *argv[])
     if (argv[1] && !strcmp(argv[1], "--billboard")) Sprite = Billboard;
     else if (argv[1] && !strcmp(argv[1], "--tadpole")) Sprite = Tadpole;
     else if (argv[1] && !strcmp(argv[1], "--smoke")) Sprite = Smoke;
-    else if ((argv[1] && (!strcmp(argv[1], "--streamlines"))) || (argv[2] && !strcmp(argv[2], "--streamlines"))) ShowStreamlines = true;
-    if ((argv[1] && (!strcmp(argv[1], "--obstacle"))) || (argv[2] && !strcmp(argv[2], "--obstacle"))) obstacle = true;
+    if ((argv[1] && (!strcmp(argv[1], "--streamlines"))) || (argv[2] && !strcmp(argv[2], "--streamlines")) || (argv[3] && !strcmp(argv[3], "--streamlines"))) ShowStreamlines = true;
+    if ((argv[1] && (!strcmp(argv[1], "--obstacle"))) || (argv[2] && !strcmp(argv[2], "--obstacle")) || (argv[3] && !strcmp(argv[3], "--obstacle"))) obstacle = true;
 
 
     glutMainLoop();

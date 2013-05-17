@@ -1,0 +1,35 @@
+Evan Drewry (ewd2106)
+Final Project - COMS W4160: Computer Graphics
+Noise-based turbulent particle simulation with obstacles
+
+For my final project, I first attempted to implement a really cool noise-based particle simulation 
+tutorial I found online at http://prideout.net/blog/?p=67 on the Little Grashopper that describes 
+a "Curl Noise" implementation with particle advection on the GPU using the openGL tranform
+feedback extension, but after a week tinkering with it still couldn't get anything to render, so I
+decided last night to simplify the project and move the particles on the CPU using a related tutorial
+on the same site: http://prideout.net/blog/?p=63. I also found this nvidia "GPUGems" tutorial very 
+helpful when I was learning the underlying math ("curl" function, navier-stokes equation, advection, 
+etc.) http://http.developer.nvidia.com/GPUGems3/gpugems3_ch23.html
+
+I used a mix of the starter code from the first programming assignment and the starter code posted
+on the tutorial website to make various cool smoke particle effects using textures, shaders, and 
+some obstacle detection techniques. There is also trackball functionality that I hijacked from the
+starter code.
+
+To compile, run:
+	
+	$ cmake .
+	$ make
+	$ ./final [<optional-args>]
+
+The optional arguments for different effects are as follows:
+
+Shaders: (use only one, must be the first agument)
+	[no-args]		runs the same as if --smoke were supplied
+	--smoke			uses a shader on the particles that kind of makes them look like smoke
+	--billboard		uses a shader on the particles that makes them outlined rectangles
+	--tadpole		uses a shader on the particles that kind of makes them look like tadpoles
+
+Other: (can be used together)
+	--streamlines	runs a single round of particles and shows the streamlines they create
+	--obstacle      emits the smoke inside a transparent sphere and it moves around inside

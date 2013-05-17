@@ -48,9 +48,6 @@ Mesh CreateQuad()
 
 void RenderMesh(Mesh mesh)
 {
-    // PezCheckCondition(glGetError() == GL_NO_ERROR, "OpenGL error.");
-    // PezCheckCondition(mesh.IndexBuffer != 0 && mesh.PositionsBuffer != 0, "Invalid mesh.");
-
     glBindBuffer(GL_ARRAY_BUFFER, mesh.PositionsBuffer);
     glVertexAttribPointer(POSITION_SLOT, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
     glEnableVertexAttribArray(POSITION_SLOT);
@@ -69,7 +66,6 @@ void RenderMesh(Mesh mesh)
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh.IndexBuffer);
     glDrawElements(GL_TRIANGLES, mesh.IndexCount, GL_UNSIGNED_INT, 0);
-    // PezCheckCondition(glGetError() == GL_NO_ERROR, "OpenGL error.");
 
     glDisableVertexAttribArray(POSITION_SLOT);
     glDisableVertexAttribArray(NORMAL_SLOT);
@@ -94,7 +90,6 @@ Mesh LoadMesh(const char* path)
     // Open the CTM file:
     CTMcontext ctmContext = ctmNewContext(CTM_IMPORT);
     ctmLoad(ctmContext, fullpath.c_str());
-    // PezCheckCondition(ctmGetError(ctmContext) == CTM_NONE, "Unable to load OpenCTM file: %s\n", fullpath.c_str());
 
     Mesh pod = {0};
     pod.VertexCount = ctmGetInteger(ctmContext, CTM_VERTEX_COUNT);

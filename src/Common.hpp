@@ -16,7 +16,7 @@ struct Particle {
     float Vz;  // Velocity Z
 };
 
-typedef std::vector<Particle> ParticleList; // TODO convert to non-STL; what data structure segues best to GPU?
+typedef std::vector<Particle> ParticleList;
 
 enum AttributeSlot {
     POSITION_SLOT,

@@ -25,9 +25,6 @@ Texture LoadTexture(const char* path)
         fullpath = fullpath + path;
     }
 
-    printf("Loading png file %s\n", fullpath.c_str());
-
-
     png_t tex;
 
     if (PNG_NO_ERROR != png_open_file_read(&tex, fullpath.c_str()))
@@ -64,9 +61,7 @@ Texture LoadTexture(const char* path)
             break;
         default:
             break;
-            // PezFatalError("Unknown bytes per pixel: %d", tex.bpp);
     }
-    // PezCheckCondition(glGetError() == GL_NO_ERROR, "OpenGL error.");
 
     glGenTextures(1, &pod.Handle);
     glBindTexture(GL_TEXTURE_2D, pod.Handle);
@@ -76,7 +71,6 @@ Texture LoadTexture(const char* path)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glGenerateMipmap(GL_TEXTURE_2D);
-    // PezCheckCondition(glGetError() == GL_NO_ERROR, "OpenGL error.");
 
     png_close_file(&tex);
     free(data);
@@ -95,13 +89,11 @@ Surface CreateSurface(int width, int height)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, 0);
-    // PezCheckCondition(GL_NO_ERROR == glGetError(), "Unable to create depth texture");
     
     // Create a FBO and attach the depth texture:
     glGenFramebuffers(1, &pod.Fbo);
     glBindFramebuffer(GL_FRAMEBUFFER, pod.Fbo);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, pod.DepthTexture, 0);
-    // PezCheckCondition(GL_NO_ERROR == glGetError(), "Unable to attach depth texture");
 
     // Create a color texture:
     glGenTextures(1, &pod.ColorTexture);
@@ -111,18 +103,12 @@ Surface CreateSurface(int width, int height)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-    // PezCheckCondition(GL_NO_ERROR == glGetError(), "Unable to create normals texture");
 
     // Attach the color buffer:
     GLuint colorbuffer;
     glGenRenderbuffers(1, &colorbuffer);
     glBindRenderbuffer(GL_RENDERBUFFER, colorbuffer);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pod.ColorTexture, 0);
-    // PezCheckCondition(GL_NO_ERROR == glGetError(), "Unable to attach color buffer");
-
-    // Validate the FBO:
-    // PezCheckCondition(GL_FRAMEBUFFER_COMPLETE == glCheckFramebufferStatus(GL_FRAMEBUFFER), "Unable to create FBO.");
-    // PezCheckCondition(glGetError() == GL_NO_ERROR, "OpenGL error.");
 
     return pod;
 
