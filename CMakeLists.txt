@@ -26,8 +26,8 @@ FILE( GLOB LIB lib/*.c lib/*.cpp )
 
 FILE( GLOB PNGLITE pnglite/*.c )
 FILE( GLOB OPENCTM openctm/*.c )
-FILE( GLOB MAIN_CPP  *.cpp)
-FILE( GLOB MAIN_H    *.hpp)
+FILE( GLOB MAIN_CPP  src/*.cpp)
+FILE( GLOB MAIN_H    src/*.hpp)
 FILE( GLOB MAIN_GLSL assets/*.glsl )
 
 ADD_DEFINITIONS( -DGLEW_STATIC -DOPENCTM_STATIC )
