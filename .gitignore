@@ -1,0 +1,13 @@
+#vim
+*.swp
+*.swo
+*~
+
+#gcc
+*.o
+pa3
+
+#screenshots
+*.ppm
+
+
